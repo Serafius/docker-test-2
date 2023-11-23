@@ -1,0 +1,55 @@
+version: "3.8"
+services:
+  wordpress:
+    image: wordpress:fpm-alpine
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    environment:
+      - WORDPRESS_DB_HOST=mariadb
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=030121086
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=030121086
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=030121086
+    volumes:
+      - db_data:/var/lib/mysql
+
+  nginx:
+    image: userxy2015/ngnix
+    container_name: nginx
+    depends_on:
+      - wordpress
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./logs/nginx:/var/log/nginx
+      - ./src:/var/www/html
+    ports:
+      - "80:80"
+      - "443:443"
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - nginx
+    environment:
+      - DOMAINS=me.ahmad.software
+      - EMAIL=ahmad.basimah8@gmail.com
+
+
+volumes:
+  wordpress_data:
+  db_data:
